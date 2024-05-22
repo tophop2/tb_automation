@@ -3,36 +3,6 @@ from playwright.sync_api import sync_playwright
 from playwright._impl._page import BindingCall, Page, Worker
 from utils import *
 
-
-def test():
-    # WebSocket 地址，根据实际情况修改
-    browser_ws_endpoint = 'ws://127.0.0.1:1234/devtools/browser/<your-browser-id>'
-
-    with sync_playwright() as p:
-        # 连接到已经打开的浏览器
-        browser = p.chromium.connect_over_cdp('http://127.0.0.1:9222')
-
-        # 获取所有已打开的页面
-        pages = browser.contexts[0].pages
-        p: Page = pages[0]
-        p.goto(url='https://taobao.com')
-        # p.wait_for_event('load')
-        # p.wai
-        p.get_by_text('请登录').click()
-        p.get_by_placeholder('手机号').click()
-        p.input_value('tophop')
-        # print(p.content())
-        # res=p.locator('span:has-text("麦当劳")').first.text_content()
-        # print(res)
-        # # 遍历每个页面并获取其 URL
-        # for page in pages:
-        #     print("Page URL:", page.url)
-        #     page.close()
-        #
-        # # 关闭浏览器
-        # browser.close()
-
-
 def login_tb():
     pages = Pages()
     pg = pages.get_active()
@@ -44,14 +14,27 @@ def login_tb():
     pg.locator('button', has_text='登录').click(delay=3)
 
 
-def get_wangwang_messages():
+def get_wangwang_messages(name):
+    '''
+    name: 旺旺聊天框左侧名字，模糊匹配
+    '''
     pages = Pages()
     pg = pages.get(title='旺旺')
-    pg.locator(':text("麦当劳")').first.click()
-    chat_list = pg.locator('.desc').all()
-    for i in chat_list:
-        print(i.text)
+    frame = pg.frames[1]
+
+    conversations=frame.query_selector_all('.conversation')
+    for i in conversations:
+        if i.text_content().find(name)>-1:
+            i.click()
+            tagrget=i
+            break
+    else:
+        return
+    frame.query_selector('.tpl-wrapper')
+    text = frame.query_selector('.tpl-wrapper').text_content()
+    shop0 = tagrget.text_content()
+    print(shop0, text)
 
 
 if __name__ == '__main__':
-    login_tb()
+    get_wangwang_messages('mcd')
